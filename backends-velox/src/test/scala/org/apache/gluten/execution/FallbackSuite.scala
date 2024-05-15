@@ -22,6 +22,7 @@ import org.apache.gluten.extension.GlutenPlan
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.execution.SparkPlan
 import org.apache.spark.sql.execution.adaptive.{AdaptiveSparkPlanHelper, AQEShuffleReadExec}
+import org.apache.spark.sql.types.{IntegerType, LongType, MapType, StringType, StructField, StructType}
 
 class FallbackSuite extends VeloxWholeStageTransformerSuite with AdaptiveSparkPlanHelper {
   protected val rootPath: String = getClass.getResource("/").getPath
@@ -213,6 +214,33 @@ class FallbackSuite extends VeloxWholeStageTransformerSuite with AdaptiveSparkPl
               }.nonEmpty == ignoreRowToColumnar.toBoolean)
           }
         }
+    }
+  }
+
+  test("plan only model") {
+    withSQLConf(GlutenConfig.PLAN_ONLY.key -> "true") {
+      runQueryAndCompare(
+        """
+          |select java_method('java.lang.Integer', 'sum', c1, c1), * from (
+          |select /*+ repartition */ cast(c1 as int) as c1 from tmp1
+          |)
+          |""".stripMargin
+      ) {
+        df =>
+          assert(
+            df.schema == StructType(Seq(
+              StructField("execution_id", LongType, true),
+              StructField("num_gluten_nodes", IntegerType, true),
+              StructField("num_fallback_nodes", IntegerType, true),
+              StructField("physical_plan_description", StringType, true),
+              StructField("fallback_node_to_reason", MapType(StringType, StringType, true), true)
+            )))
+          val result = df.collect().head
+          assert(result.getAs[Int]("num_gluten_nodes") > 0)
+          assert(result.getAs[Int]("num_fallback_nodes") > 0)
+          assert(result.getAs[String]("physical_plan_description").nonEmpty)
+          assert(result.getAs[Map[String, String]]("fallback_node_to_reason").nonEmpty)
+      }
     }
   }
 }

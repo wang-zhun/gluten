@@ -1835,4 +1835,11 @@ object GlutenConfig {
       .internal()
       .booleanConf
       .createWithDefault(true)
+
+  val PLAN_ONLY =
+    buildConf("spark.sql.gluten.planOnly")
+      .internal()
+      .doc("Only plan the query and do not execute it.")
+      .booleanConf
+      .createWithDefault(false)
 }

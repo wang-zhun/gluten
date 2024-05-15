@@ -22,7 +22,7 @@ import org.apache.gluten.backendsapi.BackendsApiManager
 import org.apache.gluten.events.GlutenBuildInfoEvent
 import org.apache.gluten.exception.GlutenException
 import org.apache.gluten.expression.ExpressionMappings
-import org.apache.gluten.extension.{ColumnarOverrides, OthersExtensionOverrides, QueryStagePrepOverrides, StrategyOverrides}
+import org.apache.gluten.extension.{ColumnarOverrides, OthersExtensionOverrides, PlanOnlyExtensions, QueryStagePrepOverrides, StrategyOverrides}
 import org.apache.gluten.test.TestStats
 import org.apache.gluten.utils.TaskListener
 
@@ -258,6 +258,7 @@ private[gluten] object GlutenPlugin {
     QueryStagePrepOverrides,
     ColumnarOverrides,
     StrategyOverrides,
-    OthersExtensionOverrides
+    OthersExtensionOverrides,
+    PlanOnlyExtensions
   )
 }
